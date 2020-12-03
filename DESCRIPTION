@@ -1,0 +1,18 @@
+Package: GS3DKViz
+Type: Package
+Title: Extra functions and visualization for the GenoScan3DKnock package
+Version: 0.1.2
+Date: 2020-12-02
+Author: Shiyang Ma, Zihuai He, James Dalgleish
+Maintainer: James Dalgleish <james.dalgleish@nih.gov>
+BugReports: https://github.com/jamesdalg/GS3DKViz/issues/
+Depends: R (>= 3.5.0),ggplot2
+Imports: Gviz,GenomicInteractions,magrittr
+Suggests: janitor,tidyr,dplyr,data.table,tibble,knitr
+VignetteBuilder: knitr
+URL: https://github.com/jamesdalg/GS3DKViz/
+biocViews: 
+Description: Auxilliary functions and vignettes for the GenoScan3DKnock package.
+License: GPL-3
+RoxygenNote: 7.1.1
+LazyData: true

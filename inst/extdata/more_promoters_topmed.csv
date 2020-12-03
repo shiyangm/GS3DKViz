@@ -1,0 +1,3 @@
+﻿chr,promstart,promend,TSS,gene.id,gene.position,best.enhancer.position,enhancer.id
+chr15,78565200,78565347,78565520,CHRNA5,78565520-78595269,no best enhancer,no best enhancer
+chr15,78727658,78727824,78727754,CHRNB4,78624111-78727754,no best enhancer,no best enhancer

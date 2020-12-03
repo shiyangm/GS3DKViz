@@ -1,0 +1,6 @@
+chr,start,end,gene.id,enhancer.id,gene.position,notes,TSS
+chr19,44904692,44905037,APOE,no best enhancer,44905791-44909393,promoter,44905791
+chr19,44890227,44890719,TOMM40,no best enhancer,44890569-44903689,promoter,44890569
+chr19,44914247,44914247,APOC1,no best enhancer,44914247-44919349,no promoter,44914247
+chr19,44954548,44955335,CLPTM1,no best enhancer,44954585-44993341,promoter,44954591
+chr19,45079045,45079180,MARK4,no best enhancer,45079288-45305284,promoter,45079288
