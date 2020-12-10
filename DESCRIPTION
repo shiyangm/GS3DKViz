@@ -1,7 +1,7 @@
 Package: GS3DKViz
 Type: Package
 Title: Extra functions and visualization for the GenoScan3DKnock package
-Version: 0.5
+Version: 0.6.2
 Date: 2020-12-10
 Author:  Shiyang Ma, James Dalgleish, Zihuai He 
 Maintainer: James Dalgleish <james.dalgleish@nih.gov>
