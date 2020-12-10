@@ -77,6 +77,104 @@ anchorTwoWithMetadata=function(gint) {
   mcols(gr)=mcols(gint)  %>% tibble::as_tibble() %>% janitor::clean_names()
   return(gr)
 }
+readGint=function(csvfile) {
+gint=data.table::fread(csvfile)  %>% 
+      #automatically clean column names, converting to standard format.
+janitor::clean_names() %>%
+  #split the gene position into start and end
+  tidyr::separate(gene_position,c("genestart","geneend"),  "-") %>% 
+    #split the promoter position into start and end
+  tidyr::separate(promoter_position,c("promoterstart","promoterend"),  "-") %>% 
+      #split the enhancer position into start and end
+  tidyr::separate(best_enhancer_position,c("enhstart","enhend"),  "-") %>%
+  #convert the promoter starts to numeric, assign replacements for missing data.
+  dplyr::mutate(promoterstart=as.numeric(promoterstart),chr1=chr,chr2=chr,
+                #replace missing promoter starts with TSS
+  promoterstart=ifelse(is.na(promoterstart),genestart,promoterstart),
+  #replace missing promoter ends with TSS
+  promoterend=ifelse(is.na(promoterend),genestart,promoterend)) %>%  
+  #create metadata column that determines whether an interaction is from
+  #the ABC model or from GeneHancer.
+  dplyr::mutate(enhancer_type=ifelse(grepl(pattern="GH",x=enhancer_id),"GH","ABC")) %>% 
+  #rearrange data columns for GenomicInteractions Objects
+  dplyr::select(chr1,promoterstart,promoterend,chr2,enhstart,enhend,dplyr::everything()) %>% 
+  #rename columns to standard GenomicInteractions format.
+  dplyr::rename(start1=promoterstart,end1=promoterend,start2=enhstart,end2=enhend) %>%
+  #remove chromosomes from second range (ranges should only be positions).
+  dplyr::mutate(start2=gsub("chr19: ","",start2)) %>% 
+  #create the GI.
+  makeGenomicInteractionsFromDataFrame() %>%
+  #remove arcs where the promoter and enhancers overlap.
+  .[which(calculateDistances(.)!=0),]
+#with the GenomicInteractions object created, we'll normalize the interaction score
+#and store it in the counts column for plotting.
+mcols(gint)=gint %>% tibble::as_tibble() %>% janitor::clean_names() %>% 
+  dplyr::group_by(enhancer_type) %>% dplyr::mutate(interaction_score=interaction_score/mean(interaction_score,na.rm=T))
+mcols(gint)$counts<-ifelse(!is.na(mcols(gint)$interaction_score),
+                                 mcols(gint)$interaction_score,1) 
+return(gint)
+}
+#test case:
+gs3dk_gint=readGint(system.file(
+"extdata","signficant_genes_genoscan_3D_knock.csv",
+  package = "GS3DKViz"))
+plotInteraction=function(gint,chr,bounds_offset=1.5e4,main="Promoter–enhancer interactions") {
+  itrack <- IdeogramTrack(genome = "hg38", chromosome =chr)
+gtrack <- GenomeAxisTrack()
+promoter_gr=anchorOneWithMetadata(gs3dk_gint)
+enhancer_gr=anchorTwoWithMetadata(gs3dk_gint)
+promoterTrack <- AnnotationTrack(promoter_gr, genome="hg38", name="Promoters",
+                             id=mcols(promoter_gr)$gene_id,  featureAnnotation="id")
+enhancerTrack <- AnnotationTrack(enhancer_gr, genome="hg38", name="Enhancers",
+                             id=mcols(enhancer_gr)$gene_id,  featureAnnotation="id")
+feature(enhancerTrack)<-mcols(gint)$enhancer_type
+
+displayPars(promoterTrack) <- list(fill = "olivedrab1", col = NA, 
+                                   fontcolor.feature = "black", fontsize=8,
+                                   just.group="below",rotation=90,rotation.group=90,rotation.item=90)
+displayPars(enhancerTrack) <- list(fill = "mediumpurple1", col = NA, 
+                                   fontcolor.feature = "black", fontsize=10,
+                                   just.group="below",rotation.item=90,
+                                   collapse=T,mergeGroups=T,showOverplotting=T,groupAnnotation="group",group=mcols(gint)$enhancer_type)
+displayPars(interaction_track) <- list(fill = "deepskyblue", col = NA, 
+                                   fontcolor.feature = "black", fontsize=8,
+                                   just.group="below",plot.anchors=T,plot.outside=T,col.outside="lightblue",                                   interaction.measure="counts",
+                                   interaction.dimension="height",
+                                   col.interactions="black",
+                                   plot.trans=T,
+                                              fontsize.legend=200
+                                   )
+
+interaction_track <- InteractionTrack(gint, name = "Interaction", chromosome = chr)
+displayPars(interaction_track)=list(col.interactions="black")
+bounds=c(gint %>% as.data.frame() %>% janitor::clean_names()  %>% dplyr::pull(start1) %>% min(),
+gint %>% as.data.frame() %>% janitor::clean_names()  %>% dplyr::pull(end1) %>% max(),
+gint %>% as.data.frame() %>% janitor::clean_names()  %>% dplyr::pull(start2) %>% min(),
+gint %>% as.data.frame() %>% janitor::clean_names()  %>% dplyr::pull(end2) %>% max())
+
+plotTracks(list(itrack,gtrack,interaction_track,promoterTrack,enhancerTrack),
+           chromosome=chr,
+           from = (min(bounds))-bounds_offset,
+           to = (max(bounds))+bounds_offset,
+           type = c("b"),
+           showSampleNames = TRUE, 
+           cex.sampleNames = 0.6,
+           cex.main=3,
+           fontsize=18,fontsize.item=12,collapse=T,min.width=5,mergeGroups=T
+           ,stacking="dense" #comment out to restore stacking
+           ,main=main,
+           background.title = "black"
+)
+  
+}
+filtered_gs3dk_gint=gs3dk_gint[(gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::pull(trait))=="FEV1"]
+plotInteraction(gint = filtered_gs3dk_gint,
+                chr=unique(janitor::clean_names(tibble::as_tibble(mcols(filtered_gs3dk_gint)))$chr),
+                bounds_offset=1.5e4,
+                main="Promoter–enhancer interactions, FEV1"
+                )
+
+
 ```
 We'll start by loading a few libraries that will enable us to generate plots
 and loading the data.
@@ -145,6 +243,7 @@ mcols(gs3dk_gint)=gs3dk_gint %>% tibble::as_tibble() %>% janitor::clean_names() 
 mcols(gs3dk_gint)$counts<-ifelse(!is.na(mcols(gs3dk_gint)$interaction_score),
                                  mcols(gs3dk_gint)$interaction_score,1) 
 #save the object
+
 save(list = c("gs3dk_gint"),file = "gs3dk_sample_data.rda",compress = "xz",
      compression_level = 9)
 ```
@@ -311,7 +410,7 @@ detFun <- function(identifier, GdObject.original, ...){
   plotTracks(list(GenomeAxisTrack(scale = 0.3, size = 0.2, cex = 0.7), 
         GdObject.original[group(GdObject.original) == identifier]),         add = TRUE, showTitle = FALSE)
 }
-deTrackEnh2 <- AnnotationTrack(enhancer_gr, fun = detFun, 
+deTrackEnh2 <- AnnotationTrack(name = "Promoters",enhancer_gr, fun = detFun, 
                             selectFun = selFun,
                             groupDetails = TRUE, details.size = 0.5, 
                             detailsConnector.cex = 0.5, 
@@ -334,7 +433,9 @@ displayPars(deTrackEnh2) <- list(fill = "mediumpurple1", col = NA,
 
 extra_prom_gr=data.table::fread(system.file(
 "extdata","more_promoters.csv",
-  package = "GS3DKViz")) %>% janitor::clean_names( ) %>%  GRanges()
+  package = "GS3DKViz")) %>% janitor::clean_names( ) %>%  dplyr::filter(!(gene_id %in%  janitor::clean_names(tibble::as_tibble(mcols(gs3dk_gint)))$gene_id)) %>% GRanges()
+#remove the extra promoters that already exist in the gint
+#setdiff( mcols(extra_prom_gr)$gene_id,janitor::clean_names(tibble::as_tibble(mcols(gs3dk_gint)))$gene_id)
 extraPromoterTrack <- AnnotationTrack(extra_prom_gr, genome="hg38", name="Unconnected Promoters",
                              id=mcols(extra_prom_gr)$gene_id,  featureAnnotation="id")
 
@@ -382,4 +483,42 @@ plotTracks(list(itrack,gtrack,interaction_track,promoterTrack,extraPromoterTrack
            background.title = "black"
 )
 ```
+To export it to EPS, for further edits, do the following:
+```{r eval=F}
+filename=gsub(":","_",gsub(" ","_",paste(date(),"AD-dense-details-extra.eps")))
+postscript(filename,width=50,height=500,family="sans")
+plotTracks(list(itrack,gtrack,interaction_track,promoterTrack,extraPromoterTrack,deTrackEnh2), 
+           chromosome=as.character(gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::filter(trait=="AD") %>% dplyr::pull(seqnames1)),
+           from = (min(bounds)-1.5e4),
+           to = (max(bounds)+1.5e4),
+           type = c("b"),
+           showSampleNames = TRUE,
+           cex.sampleNames = 0.6,
+           cex.main=3,
+           fontsize=18,fontsize.item=7,collapse=T,
+           #min.width=1,min.distance=5,
+           mergeGroups=T
+           ,stacking="dense" #comment out to restore stacking
+           ,main="Promoter–enhancer interactions, AD",
+           background.title = "black"
+)
+dev.off()
+extrafont::embed_fonts(filename,outfile=paste0(filename,"-embed.eps"))
+```
+
+Finally, for simple plots, we've created a convenient function for plotting.
+```{r basic_example}
+ gs3dk_gint=readGint(system.file(
+   "extdata","signficant_genes_genoscan_3D_knock.csv",
+   package = "GS3DKViz"))
+   filtered_gs3dk_gint=gs3dk_gint[(gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::pull(trait))=="FEV1"]
+   plotInteraction(gint = filtered_gs3dk_gint,
+  chr=unique(janitor::clean_names(tibble::as_tibble(mcols(filtered_gs3dk_gint)))$chr),
+  bounds_offset=1.5e4,
+  main="Promoter–enhancer interactions, FEV1"
+  )
+```
+
+
+
 

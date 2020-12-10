@@ -3,3 +3,8 @@
 export(anchorOneWithMetadata)
 export(anchorTwoWithMetadata)
 export(makeGenomicInteractionsFromDataFrame)
+export(plotInteraction)
+export(readGint)
+importFrom(Gviz,AnnotationTrack)
+importFrom(Gviz,GenomeAxisTrack)
+importFrom(Gviz,IdeogramTrack)
