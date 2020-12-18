@@ -413,7 +413,7 @@ plotTracks(list(itrack,gtrack,interaction_track,promoterTrack,enhancerTrack),
            cex.sampleNames = 0.6,
            cex.main=3,
            fontsize=18,fontsize.item=12,collapse=T,min.width=5,mergeGroups=T
-           ,stacking="dense" #comment out to restore stacking
+           ,stacking="squish" #comment out to restore stacking
            ,main="Promoter–enhancer interactions, FVC",
            background.title = "black"
 )
