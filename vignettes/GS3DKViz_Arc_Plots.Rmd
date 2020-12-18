@@ -410,7 +410,7 @@ detFun <- function(identifier, GdObject.original, ...){
   plotTracks(list(GenomeAxisTrack(scale = 0.3, size = 0.2, cex = 0.7), 
         GdObject.original[group(GdObject.original) == identifier]),         add = TRUE, showTitle = FALSE)
 }
-deTrackEnh2 <- AnnotationTrack(name = "Promoters",enhancer_gr, fun = detFun, 
+deTrackEnh2 <- AnnotationTrack(name = "Enhancers",enhancer_gr, fun = detFun, 
                             selectFun = selFun,
                             groupDetails = TRUE, details.size = 0.5, 
                             detailsConnector.cex = 0.5, 
