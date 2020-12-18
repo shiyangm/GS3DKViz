@@ -414,7 +414,7 @@ plotTracks(list(itrack,gtrack,interaction_track,promoterTrack,enhancerTrack),
            cex.main=3,
            fontsize=18,fontsize.item=12,collapse=T,min.width=5,mergeGroups=T
            ,stacking="squish" #comment out to restore stacking
-           ,main="Promoter–enhancer interactions, FVC",
+           ,main="Promoter–enhancer interactions, FEV1/FVC",
            background.title = "black"
 )
 ```
