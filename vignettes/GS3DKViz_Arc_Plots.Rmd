@@ -388,6 +388,59 @@ plotTracks(list(itrack,gtrack,interaction_track,promoterTrack,enhancerTrack),
            background.title = "black"
 )
 ```
+Another example using alternative colors for the interactions:
+```{r fvc,fig.width = 12,fig.height=12}
+#concatenate into new column
+
+annotateInteractions(GIObject = gs3dk_gint,annotations =  list(promoter=promoter_gr, enhancer=enhancer_gr),id.col="gene_id")
+#regions(gs3dk_gint)
+knockoff_genes=mcols(gs3dk_gint) %>% tibble::as_tibble() %>% dplyr::filter(identified_by_knockoff_or_not=="Yes") %>% dplyr::pull(gene_id)
+# mcols(regions(gs3dk_gint)) %>% dplyr::mutate(knockoff=ifelse(any(promoter.id %in% knockoff_genes | enhancer.id %in% knockoff_genes)))
+mcols(regions(gs3dk_gint))$node.class
+
+gs3dk_gint@regions@elementMetadata$node.class=(mcols(regions(gs3dk_gint)) %>% tibble::as_tibble() %>% dplyr::mutate(knockoff=ifelse((promoter.id %in% knockoff_genes | enhancer.id %in% knockoff_genes),"knockoff_detected","knockoff_removed"),node.class=knockoff) %>% dplyr::pull(knockoff))
+
+
+
+
+
+
+
+
+#interaction_track <- InteractionTrack(gs3dk_gint,name='HiC',chromosome = "chr1")
+# displayPars(interaction_track)  <- list(col.interactions="black",
+#     col.interactions.types=c('promoter-promoter'='red', 'promoter-enhancer'='blue'))
+# mcols(gs3dk_gint) %>% tibble::as_tibble() %>% dplyr::select(gene_id,identified_by_knockoff_or_not) %>% dplyr::inner_join(x=.y=mcols(regions(gs3dk_gint)),by=c("gene_id"="promoter.id"))
+
+##mcols(gs3dk_gint) %>% tibble::as_tibble() %>% dplyr::select(gene_id,identified_by_knockoff_or_not) %>% dplyr::inner_join(tidyr::unnest(tibble::as_tibble(mcols(regions(gs3dk_gint)))),by=c("gene_id" = "promoter.id"))
+##gene_knock_df=mcols(gs3dk_gint) %>% tibble::as_tibble() %>%
+##  dplyr::select(gene_id,identified_by_knockoff_or_not)
+##mcols_regions_gs3dk=(tibble::as_tibble(mcols(regions(gs3dk_gint)))) %>% tidyr::unnest() %>% dplyr::mutate(interaction_id=1:length(regions(gs3dk_gint)))
+# mcols(regions(gs3dk_gint)) %>% data.table::as.data.table() %>% dplyr::inner_join()
+##mcols(regions(gs3dk_gint))$node.class
+
+interaction_track <- InteractionTrack(gs3dk_gint, name = "Interaction", chromosome = as.character(gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::filter(trait=="FEV1/FVC") %>% dplyr::pull(seqnames1)))
+# displayPars(interaction_track)=list(col.interactions="black",col.interaction.types=c('promoter-promoter'='red', 'promoter-enhancer'='blue'))
+displayPars(interaction_track)=list(col.interactions="black",col.interaction.types=c('knockoff_detected-knockoff_detected'='red', 'knockoff_detected-knockoff_removed'='blue','knockoff_removed-knockoff_removed'='blue'))
+bounds=c(gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::filter(trait=="FEV1/FVC") %>% dplyr::pull(start1) %>% min(),
+gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::filter(trait=="FEV1/FVC") %>% dplyr::pull(end1) %>% max(),
+gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::filter(trait=="FEV1/FVC") %>% dplyr::pull(start2) %>% min(),
+gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::filter(trait=="FEV1/FVC") %>% dplyr::pull(end2) %>% max())
+plotTracks(list(itrack,gtrack,interaction_track,promoterTrack,enhancerTrack),
+           chromosome=as.character(gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::filter(trait=="FEV1/FVC") %>% dplyr::pull(seqnames1)),
+           from = (min(bounds))-1.5e4,
+           to = (max(bounds))+1.5e4,
+           type = c("b"),
+           showSampleNames = TRUE, 
+           cex.sampleNames = 0.6,
+           cex.main=3,
+           fontsize=18,fontsize.item=12,collapse=T,min.width=5,mergeGroups=T
+           ,stacking="dense" #comment out to restore stacking
+           ,main="Promoter–enhancer interactions, FVC",
+           background.title = "black"
+)
+```
+
 Lastly, we'll do a details plot, which requires a details function and selection function. It's a bit complex, but the code is below.
 ```{r AD_details,fig.width = 12,fig.height=12}
 promoterTrack <- AnnotationTrack(promoter_gr, genome="hg38", name="Promoters",
