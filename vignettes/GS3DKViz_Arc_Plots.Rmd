@@ -389,7 +389,7 @@ plotTracks(list(itrack,gtrack,interaction_track,promoterTrack,enhancerTrack),
 )
 ```
 Another example using alternative colors for the interactions:
-```{r fvc,fig.width = 12,fig.height=12}
+```{r fevfvc_arc_colors,fig.width = 12,fig.height=12}
 
 annotateInteractions(GIObject = gs3dk_gint,annotations =  list(promoter=promoter_gr, enhancer=enhancer_gr),id.col="gene_id")
 
