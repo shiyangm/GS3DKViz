@@ -395,10 +395,7 @@ annotateInteractions(GIObject = gs3dk_gint,annotations =  list(promoter=promoter
 
 knockoff_genes=mcols(gs3dk_gint) %>% tibble::as_tibble() %>% dplyr::filter(identified_by_knockoff_or_not=="Yes") %>% dplyr::pull(gene_id)
 
-mcols(regions(gs3dk_gint))$node.class
-
 gs3dk_gint@regions@elementMetadata$node.class=(mcols(regions(gs3dk_gint)) %>% tibble::as_tibble() %>% dplyr::mutate(knockoff=ifelse((promoter.id %in% knockoff_genes | enhancer.id %in% knockoff_genes),"knockoff_detected","knockoff_removed"),node.class=knockoff) %>% dplyr::pull(knockoff))
-
 
 interaction_track <- InteractionTrack(gs3dk_gint, name = "Interaction", chromosome = as.character(gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::filter(trait=="FEV1/FVC") %>% dplyr::pull(seqnames1)))
 
