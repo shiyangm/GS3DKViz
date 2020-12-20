@@ -173,7 +173,11 @@ plotInteraction(gint = filtered_gs3dk_gint,
                 bounds_offset=1.5e4,
                 main="Promoter–enhancer interactions, FEV1"
                 )
-
+is.ko.detected=function(gint) {
+  (gint@regions$node.class[gint@anchor1] == 
+        "knockoff_detected" | gint@regions$node.class[gint@anchor2] == 
+        "knockoff_detected")
+}
 
 ```
 We'll start by loading a few libraries that will enable us to generate plots
@@ -399,7 +403,7 @@ gs3dk_gint@regions@elementMetadata$node.class=(mcols(regions(gs3dk_gint)) %>% ti
 
 interaction_track <- InteractionTrack(gs3dk_gint, name = "Interaction", chromosome = as.character(gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::filter(trait=="FEV1/FVC") %>% dplyr::pull(seqnames1)))
 
-displayPars(interaction_track)=list(col.interactions="black",col.interaction.types=c('knockoff_detected-knockoff_detected'='red', 'knockoff_detected-knockoff_removed'='blue','knockoff_removed-knockoff_removed'='blue'))
+displayPars(interaction_track)=list(col.interactions="black",col.interaction.types=c('knockoff_detected-knockoff_detected'='blue', 'knockoff_detected-knockoff_removed'='blue','knockoff_removed-knockoff_removed'='black'))
 bounds=c(gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::filter(trait=="FEV1/FVC") %>% dplyr::pull(start1) %>% min(),
 gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::filter(trait=="FEV1/FVC") %>% dplyr::pull(end1) %>% max(),
 gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::filter(trait=="FEV1/FVC") %>% dplyr::pull(start2) %>% min(),
@@ -421,10 +425,15 @@ plotTracks(list(itrack,gtrack,interaction_track,promoterTrack,enhancerTrack),
 
 Lastly, we'll do a details plot, which requires a details function and selection function. It's a bit complex, but the code is below.
 ```{r AD_details,fig.width = 12,fig.height=12}
+annotateInteractions(GIObject = gs3dk_gint,annotations =  list(promoter=promoter_gr, enhancer=enhancer_gr),id.col="gene_id")
+knockoff_genes=mcols(gs3dk_gint) %>% tibble::as_tibble() %>% dplyr::filter(identified_by_knockoff_or_not=="Yes") %>% dplyr::pull(gene_id)
+gs3dk_gint@regions@elementMetadata$node.class=(mcols(regions(gs3dk_gint)) %>% tibble::as_tibble() %>% dplyr::mutate(knockoff=ifelse((promoter.id %in% knockoff_genes | enhancer.id %in% knockoff_genes),"knockoff_detected","knockoff_removed"),node.class=knockoff) %>% dplyr::pull(knockoff))
+
 promoterTrack <- AnnotationTrack(promoter_gr, genome="hg38", name="Promoters",
                              id=mcols(promoter_gr)$gene_id,  featureAnnotation="id")
 interaction_track <- InteractionTrack(gs3dk_gint, name = "Interaction", chromosome = as.character(gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::filter(trait=="AD") %>% dplyr::pull(seqnames1)))
-displayPars(interaction_track)=list(col.interactions="black")
+
+displayPars(interaction_track)=list(col.interactions="black",col.interaction.types=c('knockoff_detected-knockoff_detected'='blue', 'knockoff_detected-knockoff_removed'='blue','knockoff_removed-knockoff_removed'='black'))
 
 bounds=c(gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::filter(trait=="AD") %>% dplyr::pull(start1) %>% min(),
 gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::filter(trait=="AD") %>% dplyr::pull(end1) %>% max(),
@@ -517,7 +526,7 @@ plotTracks(list(itrack,gtrack,interaction_track,promoterTrack,extraPromoterTrack
 ```
 To export it to EPS, for further edits, do the following:
 ```{r eval=F}
-filename=gsub(":","_",gsub(" ","_",paste(date(),"AD-dense-details-extra.eps")))
+filename=gsub(":","_",gsub(" ","_",paste(date(),"AD-dense-details-extra_color_arcs.eps")))
 postscript(filename,width=50,height=500,family="sans")
 plotTracks(list(itrack,gtrack,interaction_track,promoterTrack,extraPromoterTrack,deTrackEnh2), 
            chromosome=as.character(gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::filter(trait=="AD") %>% dplyr::pull(seqnames1)),
@@ -551,6 +560,19 @@ Finally, for simple plots, we've created a convenient function for plotting.
   )
 ```
 
+```{r xchecks, echo=F,eval=F}
+#Appendix:
+#cross checks
 
-
+highlighted_genes=c("QPCTL", "OPA3", "ZNF45", "ZNF155", "ZNF230","ZNF223","ZNF284","ZNF224","ZNF225","ZNF234","ZNF180","IGSF23","BCAM","NECTIN2","RELB")
+setdiff(mcols(gs3dk_gint[is.ko.detected(gs3dk_gint) & gs3dk_gint@elementMetadata$seqnames1=="chr19"])$gene_id,highlighted_genes)
+intersect(mcols(gs3dk_gint[is.ko.detected(gs3dk_gint) & gs3dk_gint@elementMetadata$seqnames1=="chr19"])$gene_id,highlighted_genes)
+setdiff(gs3dk_gint[gs3dk_gint@elementMetadata$identified_by_knockoff_or_not=="Yes" & gs3dk_gint@elementMetadata$seqnames1=="chr19"]$gene_id,highlighted_genes)
+intersect(gs3dk_gint[gs3dk_gint@elementMetadata$identified_by_knockoff_or_not=="Yes" & gs3dk_gint@elementMetadata$seqnames1=="chr19"]$gene_id,highlighted_genes)
+length(intersect(gs3dk_gint[gs3dk_gint@elementMetadata$identified_by_knockoff_or_not=="Yes" & gs3dk_gint@elementMetadata$seqnames1=="chr19"]$gene_id,highlighted_genes))
+length(highlighted_genes)
+old=GS3DKViz::readGint("../inst/extdata/signficant_genes_genoscan_3D_knock.csv")
+new=GS3DKViz::readGint("../inst/extdata/signficant_genes_genoscan_3D_knock_12-20.csv")
+table(old==new)
+```
 
