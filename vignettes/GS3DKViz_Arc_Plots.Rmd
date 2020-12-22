@@ -424,25 +424,19 @@ plotTracks(list(itrack,gtrack,interaction_track,promoterTrack,enhancerTrack),
 ```
 
 Lastly, we'll do a details plot, which requires a details function and selection function. It's a bit complex, but the code is below.
-```{r AD_details,fig.width = 12,fig.height=12}
+```{r AD_details_combined_simplified,fig.width = 18,fig.height=12}
 annotateInteractions(GIObject = gs3dk_gint,annotations =  list(promoter=promoter_gr, enhancer=enhancer_gr),id.col="gene_id")
 knockoff_genes=mcols(gs3dk_gint) %>% tibble::as_tibble() %>% dplyr::filter(identified_by_knockoff_or_not=="Yes") %>% dplyr::pull(gene_id)
 gs3dk_gint@regions@elementMetadata$node.class=(mcols(regions(gs3dk_gint)) %>% tibble::as_tibble() %>% dplyr::mutate(knockoff=ifelse((promoter.id %in% knockoff_genes | enhancer.id %in% knockoff_genes),"knockoff_detected","knockoff_removed"),node.class=knockoff) %>% dplyr::pull(knockoff))
-
-promoterTrack <- AnnotationTrack(promoter_gr, genome="hg38", name="Promoters",
-                             id=mcols(promoter_gr)$gene_id,  featureAnnotation="id")
 interaction_track <- InteractionTrack(gs3dk_gint, name = "Interaction", chromosome = as.character(gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::filter(trait=="AD") %>% dplyr::pull(seqnames1)))
-
 displayPars(interaction_track)=list(col.interactions="black",col.interaction.types=c('knockoff_detected-knockoff_detected'='blue', 'knockoff_detected-knockoff_removed'='blue','knockoff_removed-knockoff_removed'='black'))
-
 bounds=c(gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::filter(trait=="AD") %>% dplyr::pull(start1) %>% min(),
 gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::filter(trait=="AD") %>% dplyr::pull(end1) %>% max(),
 gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::filter(trait=="AD") %>% dplyr::pull(start2) %>% min(),
 gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::filter(trait=="AD") %>% dplyr::pull(end2) %>% max())
-
 selFun <- function(identifier, start, end, track, GdObject, ...){
     gcount <- table(group(GdObject))
-    pxRange <- Gviz:::.pxResolution(min.width = 30, coord = "x")
+    pxRange <- Gviz:::.pxResolution(min.width = 50, coord = "x")
     return((end - start) < pxRange && gcount[identifier] == 1 && (distanceToNearest(GdObject[group(GdObject) == identifier]@range,GdObject[group(GdObject) != identifier]@range)@elementMetadata$distance)<50
            )
 }
@@ -463,159 +457,23 @@ deTrackEnh2 <- AnnotationTrack(name = "Enhancers",enhancer_gr, fun = detFun,
 displayPars(deTrackEnh2) <- list(fill = "mediumpurple1", col = NA, 
                                    fontcolor.feature = "black", fontsize=10,
                                    just.group="below",rotation.item=90,
-                                   collapse=T,mergeGroups=T,showOverplotting=T,groupAnnotation="group",group=mcols(gs3dk_gint)$enhancer_type,feature=mcols(gs3dk_gint)$enhancer_type,
+                                   collapse=T,mergeGroups=T,showOverplotting=T,groupAnnotation="group",    group=mcols(gs3dk_gint)$enhancer_type,feature=mcols(gs3dk_gint)$enhancer_type,
                               groupDetails=T,detailsConnector.lty="solid",
                               detailsConnector.col="black",
                               detailsBorder.col="black",
                               detailsBorder.lty="solid",showId=F
-                             ,min.distance=5,min.width=5,title="Enhancers" #,detailsConnector.pch=2,detailsConnector.cex=1
-                              ) #groupAnnotation
-
-extra_prom_gr=data.table::fread(system.file(
-"extdata","more_promoters.csv",
+                             ,min.distance=5,min.width=5,title="Enhancers") 
+extra_prom_gr=data.table::fread(system.file("extdata","more_promoters.csv",
   package = "GS3DKViz")) %>% janitor::clean_names( ) %>%  dplyr::filter(!(gene_id %in%  janitor::clean_names(tibble::as_tibble(mcols(gs3dk_gint)))$gene_id)) %>% GRanges()
-
-#remove the extra promoters that already exist in the gint
-#setdiff( mcols(extra_prom_gr)$gene_id,janitor::clean_names(tibble::as_tibble(mcols(gs3dk_gint)))$gene_id)
-extraPromoterTrack <- AnnotationTrack(extra_prom_gr, genome="hg38", name="Unconnected Promoters",
-                             id=mcols(extra_prom_gr)$gene_id,  featureAnnotation="id")
-
-displayPars(extraPromoterTrack)=displayPars(promoterTrack)
 itrack <- IdeogramTrack(genome = "hg38", chromosome =unique(as.character(gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::filter(trait=="AD") %>% dplyr::pull(seqnames1)) ))
-deTrackPro <- AnnotationTrack(range = promoter_gr, genome = "hg38", 
-                           chromosome = as.character(gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::filter(trait=="AD") %>% dplyr::pull(seqnames1)), id = mcols(promoter_gr)$gene_id,
-                           name = "probe details", stacking = "squish")
-selFun <- function(identifier, start, end, track, GdObject, ...){
-  #GdObject[group(GdObject) == identifier]@range
-    gcount <- table(group(GdObject))
-    ## This computes the width of 2 pixels in genomic coordinates
-    pxRange <- Gviz:::.pxResolution(min.width = 50, coord = "x")
-    return((end - start) < pxRange && gcount[identifier] == 1 && (distanceToNearest(GdObject[group(GdObject) == identifier]@range,GdObject[group(GdObject) != identifier]@range)@elementMetadata$distance)<50
-           )
-}
-detFun <- function(identifier, GdObject.original, ...){
-  plotTracks(list(GenomeAxisTrack(scale = 0.3, size = 0.2, cex = 0.7), 
-        GdObject.original[group(GdObject.original) == identifier]),
-        add = TRUE, showTitle = FALSE)
-}
-displayPars(promoterTrack) <- list(fill = "olivedrab1", col = NA, 
-                                   fontcolor.feature = "black", fontsize=8,
-                                   just.group="below",rotation=90,rotation.group=90,rotation.item=90)
-
-displayPars(extraPromoterTrack)=displayPars(promoterTrack)
-
-displayPars(extraPromoterTrack) <- list(fill = "darkorange")
-
-displayPars(promoterTrack)=list(min.width=1,min.distance=5)
-displayPars(enhancerTrack)=list(rotation.item=90)
-plotTracks(list(itrack,gtrack,interaction_track,promoterTrack,extraPromoterTrack,deTrackEnh2), 
-           chromosome=as.character(gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::filter(trait=="AD") %>% dplyr::pull(seqnames1)),
-           from = (min(bounds)-1.5e4),
-           to = (max(bounds)+1.5e4),
-           type = c("b"),
-           showSampleNames = TRUE,
-           cex.sampleNames = 0.6,
-           cex.main=3,
-           fontsize=18,fontsize.item=7,collapse=T,
-           #min.width=1,min.distance=5,
-           mergeGroups=T
-           ,stacking="squish" #comment out to restore stacking
-           ,main="Promoter–enhancer interactions, AD",
-           background.title = "black"
-)
-```
-
-```{r AD_details_combined,fig.width = 18,fig.height=12}
-annotateInteractions(GIObject = gs3dk_gint,annotations =  list(promoter=promoter_gr, enhancer=enhancer_gr),id.col="gene_id")
-knockoff_genes=mcols(gs3dk_gint) %>% tibble::as_tibble() %>% dplyr::filter(identified_by_knockoff_or_not=="Yes") %>% dplyr::pull(gene_id)
-gs3dk_gint@regions@elementMetadata$node.class=(mcols(regions(gs3dk_gint)) %>% tibble::as_tibble() %>% dplyr::mutate(knockoff=ifelse((promoter.id %in% knockoff_genes | enhancer.id %in% knockoff_genes),"knockoff_detected","knockoff_removed"),node.class=knockoff) %>% dplyr::pull(knockoff))
-
-promoterTrack <- AnnotationTrack(promoter_gr, genome="hg38", name="Promoters",
-                             id=mcols(promoter_gr)$gene_id,  featureAnnotation="id")
-interaction_track <- InteractionTrack(gs3dk_gint, name = "Interaction", chromosome = as.character(gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::filter(trait=="AD") %>% dplyr::pull(seqnames1)))
-
-displayPars(interaction_track)=list(col.interactions="black",col.interaction.types=c('knockoff_detected-knockoff_detected'='blue', 'knockoff_detected-knockoff_removed'='blue','knockoff_removed-knockoff_removed'='black'))
-
-bounds=c(gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::filter(trait=="AD") %>% dplyr::pull(start1) %>% min(),
-gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::filter(trait=="AD") %>% dplyr::pull(end1) %>% max(),
-gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::filter(trait=="AD") %>% dplyr::pull(start2) %>% min(),
-gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::filter(trait=="AD") %>% dplyr::pull(end2) %>% max())
-
-selFun <- function(identifier, start, end, track, GdObject, ...){
-    gcount <- table(group(GdObject))
-    pxRange <- Gviz:::.pxResolution(min.width = 30, coord = "x")
-    return((end - start) < pxRange && gcount[identifier] == 1 && (distanceToNearest(GdObject[group(GdObject) == identifier]@range,GdObject[group(GdObject) != identifier]@range)@elementMetadata$distance)<50
-           )
-}
-detFun <- function(identifier, GdObject.original, ...){
-  plotTracks(list(GenomeAxisTrack(scale = 0.3, size = 0.2, cex = 0.7), 
-        GdObject.original[group(GdObject.original) == identifier]),         add = TRUE, showTitle = FALSE)
-}
-deTrackEnh2 <- AnnotationTrack(name = "Enhancers",enhancer_gr, fun = detFun, 
-                            selectFun = selFun,
-                            groupDetails = TRUE, details.size = 0.5, 
-                            detailsConnector.cex = 0.5, 
-                            detailsConnector.lty = "dotted",
-                            shape = c("smallArrow", "arrow"), 
-                            groupAnnotation = "group",
-                            id=mcols(enhancer_gr)$gene_id, 
-                            group=subjectHits(findOverlaps(enhancer_gr, reduce(enhancer_gr))),featureAnnotation="id",stacking="hide",
-                      )
-displayPars(deTrackEnh2) <- list(fill = "mediumpurple1", col = NA, 
-                                   fontcolor.feature = "black", fontsize=10,
-                                   just.group="below",rotation.item=90,
-                                   collapse=T,mergeGroups=T,showOverplotting=T,groupAnnotation="group",group=mcols(gs3dk_gint)$enhancer_type,feature=mcols(gs3dk_gint)$enhancer_type,
-                              groupDetails=T,detailsConnector.lty="solid",
-                              detailsConnector.col="black",
-                              detailsBorder.col="black",
-                              detailsBorder.lty="solid",showId=F
-                             ,min.distance=5,min.width=5,title="Enhancers" #,detailsConnector.pch=2,detailsConnector.cex=1
-                              ) #groupAnnotation
-
-extra_prom_gr=data.table::fread(system.file(
-"extdata","more_promoters.csv",
-  package = "GS3DKViz")) %>% janitor::clean_names( ) %>%  dplyr::filter(!(gene_id %in%  janitor::clean_names(tibble::as_tibble(mcols(gs3dk_gint)))$gene_id)) %>% GRanges()
-
-#remove the extra promoters that already exist in the gint
-#setdiff( mcols(extra_prom_gr)$gene_id,janitor::clean_names(tibble::as_tibble(mcols(gs3dk_gint)))$gene_id)
-extraPromoterTrack <- AnnotationTrack(extra_prom_gr, genome="hg38", name="Unconnected Promoters",
-                             id=mcols(extra_prom_gr)$gene_id,  featureAnnotation="id")
-
-itrack <- IdeogramTrack(genome = "hg38", chromosome =unique(as.character(gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::filter(trait=="AD") %>% dplyr::pull(seqnames1)) ))
-deTrackPro <- AnnotationTrack(range = promoter_gr, genome = "hg38", 
-                           chromosome = as.character(gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::filter(trait=="AD") %>% dplyr::pull(seqnames1)), id = mcols(promoter_gr)$gene_id,
-                           name = "probe details", stacking = "squish")
-selFun <- function(identifier, start, end, track, GdObject, ...){
-  #GdObject[group(GdObject) == identifier]@range
-    gcount <- table(group(GdObject))
-    ## This computes the width of 2 pixels in genomic coordinates
-    pxRange <- Gviz:::.pxResolution(min.width = 50, coord = "x")
-    return((end - start) < pxRange && gcount[identifier] == 1 && (distanceToNearest(GdObject[group(GdObject) == identifier]@range,GdObject[group(GdObject) != identifier]@range)@elementMetadata$distance)<50
-           )
-}
-detFun <- function(identifier, GdObject.original, ...){
-  plotTracks(list(GenomeAxisTrack(scale = 0.3, size = 0.2, cex = 0.7), 
-        GdObject.original[group(GdObject.original) == identifier]),
-        add = TRUE, showTitle = FALSE)
-}
-displayPars(promoterTrack) <- list(fill = "olivedrab1", col = NA, 
-                                   fontcolor.feature = "black", fontsize=8,
-                                   just.group="below",rotation=90,rotation.group=90,rotation.item=90)
-
-displayPars(extraPromoterTrack)=displayPars(promoterTrack)
-
-displayPars(extraPromoterTrack) <- list(fill = "darkorange")
 combined_prom_gr=c(promoter_gr,extra_prom_gr)
 CombinedPromoterTrack <- AnnotationTrack(combined_prom_gr, genome="hg38", name="Promoters",
                              id=mcols(combined_prom_gr)$gene_id,  featureAnnotation="id",groupAnnotation="feature")
-displayPars(CombinedPromoterTrack)=displayPars(promoterTrack)
+displayPars(CombinedPromoterTrack)=list(fill = "olivedrab1", col = NA, 
+                                   fontcolor.feature = "black", fontsize=8,                 just.group="below",rotation=90,rotation.group=90,rotation.item=90,
+                                   min.width=1,min.distance=5)
 feature(CombinedPromoterTrack)=c(rep("connected",length(promoter_gr)),rep("unconnected",length(extra_prom_gr)))
-
-displayPars(promoterTrack)=list(min.width=1,min.distance=5)
-displayPars(CombinedPromoterTrack)=list(min.width=1,min.distance=5)
-displayPars(enhancerTrack)=list(rotation.item=90)
-plotTracks(list(itrack,gtrack,interaction_track,CombinedPromoterTrack,deTrackEnh2), 
-           chromosome=as.character(gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::filter(trait=="AD") %>% dplyr::pull(seqnames1)),
+plotTracks(list(itrack,gtrack,interaction_track,CombinedPromoterTrack,deTrackEnh2),chromosome=as.character(gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::filter(trait=="AD") %>% dplyr::pull(seqnames1)),
            from = (min(bounds)-1.5e4),
            to = (max(bounds)+1.5e4),
            type = c("b"),
@@ -623,14 +481,15 @@ plotTracks(list(itrack,gtrack,interaction_track,CombinedPromoterTrack,deTrackEnh
            cex.sampleNames = 0.6,
            cex.main=3,
            fontsize=18,fontsize.item=7,collapse=T,
-           #min.width=1,min.distance=5,
            mergeGroups=T
-           ,stacking="dense" #comment out to restore stacking
+           ,stacking="dense"
            ,main="Promoter–enhancer interactions, AD",
            background.title = "black",
            unconnected="orange",connected="green"
 )
 ```
+
+
 To export it to EPS, for further edits, do the following:
 ```{r eval=F}
 filename=gsub(":","_",gsub(" ","_",paste(date(),"AD-dense-details-extra_color_arcs.eps")))
@@ -681,5 +540,109 @@ length(highlighted_genes)
 old=GS3DKViz::readGint("../inst/extdata/signficant_genes_genoscan_3D_knock.csv")
 new=GS3DKViz::readGint("../inst/extdata/signficant_genes_genoscan_3D_knock_12-20.csv")
 table(old==new)
+```
+```{r overrides,echo=F,eval=F}
+.collapseAnnotation=function (grange, minXDist, elements, GdObject, offset = 0) 
+{
+  
+    needsRestacking <- TRUE
+    annoSplit <- merged <- NULL
+    anno <- as.data.frame(grange)
+    for (i in colnames(anno)) if (is.factor(anno[, i])) 
+        anno[, i] <- as.character(anno[, i])
+    cols <- c("strand", "density", "gdensity", 
+        "feature", "id", "start", "end", 
+        if (is(GdObject, "GeneRegionTrack")) c("gene", 
+            "exon", "transcript", "symbol", 
+            "rank") else "group")
+    missing <- which(!cols %in% colnames(anno))
+    for (i in missing) anno[, cols[missing]] <- if (cols[i] == 
+        "density") 
+        1
+    else NA
+    rRed <- if (length(grange) > 1) 
+        reduce(grange, min.gapwidth = minXDist, with.revmap = TRUE)
+    else grange
+    if (length(rRed) < length(grange)) {
+        needsRestacking <- TRUE
+        mapping <- rep(seq_along(rRed$revmap), elementNROWS(rRed$revmap))
+        identical <- mapping %in% which(table(mapping) == 1)
+        newVals <- anno[identical, cols]
+        if (nrow(newVals)) {
+            newVals$seqnames <- elements[as.character(anno[identical, 
+                "seqnames"])] == 1
+            newVals$gdensity <- ifelse(elements[as.character(anno[identical, 
+                "seqnames"])] == 1, 1, NA)
+        }
+        grange <- grange[!identical]
+        rRed <- rRed[-(mapping[identical])]
+        index <- mapping[!identical]
+        annoSplit <- split(anno[!identical, ], index)
+        cid <- function(j) sprintf("[Cluster_%i]  ", j + 
+            offset)
+        newVals <- rbind(newVals, as.data.frame(t(sapply(seq_along(annoSplit), 
+            function(i) {
+                x <- annoSplit[[i]]
+                if (is(GdObject, "GeneRegionTrack")) {
+                  c(strand = ifelse(length(unique(x[, "strand"])) == 
+                    1, as.character(x[1, "strand"]), "*"), 
+                    density = sum(as.integer(x[, "density"])), 
+                    gdensity = ifelse(is.na(head(x[, "gdensity"], 
+                      1)), 1, sum(as.integer(x[, "gdensity"]))), 
+                    feature = ifelse(length(unique(x[, "feature"])) == 
+                      1, as.character(x[1, "feature"]), 
+                      "composite"), id = ifelse(length(unique(x[, 
+                      "id"])) == 1, as.character(x[1, "id"]), 
+                      cid(i)), start = min(x[, "start"]), 
+                    end = max(x[, "end"]), gene = ifelse(length(unique(x[, 
+                      "gene"])) == 1, as.character(x[1, 
+                      "gene"]), cid(i)), exon = ifelse(length(unique(x[, 
+                      "exon"])) == 1, as.character(x[1, 
+                      "exon"]), cid(i)), transcript = ifelse(length(unique(x[, 
+                      "transcript"])) == 1, as.character(x[1, 
+                      "transcript"]), cid(i)), symbol = ifelse(length(unique(x[, 
+                      "symbol"])) == 1, as.character(x[1, 
+                      "symbol"]), cid(i)), rank = min(as.integer(x[, 
+                      "rank"])), seqnames = as.vector(nrow(x) == 
+                      elements[x[1, "seqnames"]]))
+                }
+                else {
+                  c(strand = ifelse(length(unique(x[, "strand"])) == 
+                    1, as.character(x[1, "strand"]), "*"), 
+                    density = sum(as.integer(x[, "density"])), 
+                    gdensity = ifelse(is.na(head(x[, "gdensity"], 
+                      1)), 1, sum(as.integer(x[, "gdensity"]))), 
+                    feature = ifelse(length(unique(x[, "feature"])) == 
+                      1, as.character(x[1, "feature"]), 
+                      "composite"), id = ifelse(length(unique(x[, 
+                      "id"])) == 1, as.character(x[1, "id"]), 
+                      cid(i)), start = min(x[, "start"]), 
+                    end = max(x[, "end"]), group = ifelse(length(unique(x[, 
+                      "group"])) == 1, as.character(x[1, 
+                      "group"]), cid(i)), seqnames = as.vector(nrow(x) == 
+                      elements[x[1, "seqnames"]]))
+                }
+            })), stringsAsFactors = FALSE))
+        merged <- as.logical(newVals$seqnames)
+        grange <- GRanges(seqnames = chromosome(GdObject), strand = newVals[, 
+            "strand"], ranges = IRanges(start = as.integer(newVals[, 
+            "start"]), end = as.integer(newVals[, "end"])))
+        cnMatch <- match(c(colnames(values(GdObject)), "gdensity"), 
+            colnames(newVals))
+        mcols(grange) <- if (any(is.na(cnMatch))) 
+            newVals[, setdiff(colnames(newVals), c("strand", 
+                "start", "end", "seqnames"))]
+        else newVals[, cnMatch]
+    }
+    else {
+        grange2 <- GRanges(seqnames = chromosome(GdObject), strand = strand(grange), 
+            ranges = ranges(grange))
+        mcols(grange2) <- mcols(grange)
+        grange <- grange2
+    }
+    browser()
+    return(list(range = grange, needsRestacking = needsRestacking, 
+        split = annoSplit, merged = merged, offset = length(annoSplit)))
+}
 ```
 
