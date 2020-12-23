@@ -29,6 +29,7 @@ the appropriate format
 (having columns chr1,start1,end1,chr2,start2,end2,....).
 }
 \examples{
+library(magrittr)
  gs3dk_gint <- data.table::fread(system.file(
  "extdata","signficant_genes_genoscan_3D_knock.csv",
  package = "GS3DKViz")) \%>\% 

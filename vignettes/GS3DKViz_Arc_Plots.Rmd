@@ -44,6 +44,18 @@ library(GS3DKViz)
 We'll start by loading a few libraries that will enable us to generate plots
 and loading the data.
 
+For simple plots, we've created a convenient function for plotting.
+```{r basic_example}
+ gs3dk_gint=readGint(system.file(
+   "extdata","signficant_genes_genoscan_3D_knock.csv",
+   package = "GS3DKViz"))
+   filtered_gs3dk_gint=gs3dk_gint[(gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::pull(trait))=="FEV1"]
+   plotInteraction(gint = filtered_gs3dk_gint,
+  chr=unique(janitor::clean_names(tibble::as_tibble(mcols(filtered_gs3dk_gint)))$chr),
+  bounds_offset=1.5e4,
+  main="Promoter–enhancer interactions, FEV1"
+  )
+```
 
 I have also included a custom function to convert data frames to
 GenomicInteractions objects, but in any way that
@@ -374,18 +386,7 @@ dev.off()
 extrafont::embed_fonts(filename,outfile=paste0(filename,"-embed.eps"))
 ```
 
-Finally, for simple plots, we've created a convenient function for plotting.
-```{r basic_example}
- gs3dk_gint=readGint(system.file(
-   "extdata","signficant_genes_genoscan_3D_knock.csv",
-   package = "GS3DKViz"))
-   filtered_gs3dk_gint=gs3dk_gint[(gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::pull(trait))=="FEV1"]
-   plotInteraction(gint = filtered_gs3dk_gint,
-  chr=unique(janitor::clean_names(tibble::as_tibble(mcols(filtered_gs3dk_gint)))$chr),
-  bounds_offset=1.5e4,
-  main="Promoter–enhancer interactions, FEV1"
-  )
-```
+
 
 ```{r xchecks, echo=F,eval=F}
 #Appendix:

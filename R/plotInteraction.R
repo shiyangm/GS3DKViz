@@ -9,15 +9,7 @@
 #' @param bounds_offset Beyond the largest and smallest elements, how much extra space in bp should be plotted?
 #' @importFrom Gviz IdeogramTrack AnnotationTrack GenomeAxisTrack
 #' @examples
-#' gs3dk_gint=GS3DKViz::readGint(system.file(
-#'   "extdata","signficant_genes_genoscan_3D_knock.csv",
-#'   package = "GS3DKViz"))
-#'   filtered_gs3dk_gint=gs3dk_gint[(janitor::clean_names(as.data.frame(gs3dk_gint))$trait)=="FEV1"]
-#'   GS3DKViz::plotInteraction(gint = filtered_gs3dk_gint,
-#'  chr=unique(janitor::clean_names(tibble::as_tibble(mcols(filtered_gs3dk_gint)))$chr),
-#'  bounds_offset=1.5e4,
-#'  main="Promoter–enhancer interactions, FEV1"
-#'  )
+#' #See example at the start of the vignette
 #' @export
 plotInteraction=function(gint,chr,bounds_offset=1.5e4,main=NULL) {
   itrack <- Gviz::IdeogramTrack(genome = "hg38", chromosome=chr)

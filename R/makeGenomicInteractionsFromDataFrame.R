@@ -14,6 +14,7 @@
 #'  in output?
 #' @return output_gint 
 #' @examples
+#' library(magrittr)
 #'  gs3dk_gint <- data.table::fread(system.file(
 #'  "extdata","signficant_genes_genoscan_3D_knock.csv",
 #'  package = "GS3DKViz")) %>% 

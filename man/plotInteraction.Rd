@@ -3,6 +3,9 @@
 \name{plotInteraction}
 \alias{plotInteraction}
 \title{Plot a GenomicInteractions object}
+\usage{
+plotInteraction(gint, chr, bounds_offset = 15000, main = NULL)
+}
 \arguments{
 \item{gint}{genomic ranges object on a single chromosome}
 
@@ -14,15 +17,7 @@
 Creates a Gviz promoter-enhancer plot
 }
 \examples{
-gs3dk_gint=GS3DKViz::readGint(system.file(
-  "extdata","signficant_genes_genoscan_3D_knock.csv",
-  package = "GS3DKViz"))
-  filtered_gs3dk_gint=gs3dk_gint[(janitor::clean_names(as.data.frame(gs3dk_gint))$trait)=="FEV1"]
-  GS3DKViz::plotInteraction(gint = filtered_gs3dk_gint,
- chr=unique(janitor::clean_names(tibble::as_tibble(mcols(filtered_gs3dk_gint)))$chr),
- bounds_offset=1.5e4,
- main="Promoter–enhancer interactions, FEV1"
- )
+#See example at the start of the vignette
 }
 \keyword{GenomicInteractions}
 \keyword{GenomicRanges}
