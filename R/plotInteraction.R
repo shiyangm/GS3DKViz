@@ -26,14 +26,14 @@ plotInteraction=function(gint,chr,bounds_offset=1.5e4,main=NULL) {
                                    id=S4Vectors::mcols(enhancer_gr)$gene_id,  featureAnnotation="id")
   feature(enhancerTrack)<-S4Vectors::mcols(gint)$enhancer_type
   
-  displayPars(promoterTrack) <- list(fill = "olivedrab1", col = NA, 
+  Gviz::displayPars(promoterTrack) <- list(fill = "olivedrab1", col = NA, 
                                      fontcolor.feature = "black", fontsize=8,
                                      just.group="below",rotation=90,rotation.group=90,rotation.item=90)
-  displayPars(enhancerTrack) <- list(fill = "mediumpurple1", col = NA, 
+  Gviz::displayPars(enhancerTrack) <- list(fill = "mediumpurple1", col = NA, 
                                      fontcolor.feature = "black", fontsize=10,
                                      just.group="below",rotation.item=90,
                                      collapse=T,mergeGroups=T,showOverplotting=T,groupAnnotation="group",group=S4Vectors::mcols(gint)$enhancer_type)
-  displayPars(interaction_track) <- list(fill = "deepskyblue", col = NA, 
+  Gviz::displayPars(interaction_track) <- list(fill = "deepskyblue", col = NA, 
                                          fontcolor.feature = "black", fontsize=8,
                                          just.group="below",plot.anchors=T,plot.outside=T,col.outside="lightblue",                                   interaction.measure="counts",
                                          interaction.dimension="height",
@@ -43,7 +43,7 @@ plotInteraction=function(gint,chr,bounds_offset=1.5e4,main=NULL) {
   )
   
   interaction_track <- GenomicInteractions::InteractionTrack(gint, name = "Interaction", chromosome = chr)
-  displayPars(interaction_track)=list(col.interactions="black")
+  Gviz::displayPars(interaction_track)=list(col.interactions="black")
   bounds=c(gint %>% as.data.frame() %>% janitor::clean_names()  %>% dplyr::pull(start1) %>% min(),
            gint %>% as.data.frame() %>% janitor::clean_names()  %>% dplyr::pull(end1) %>% max(),
            gint %>% as.data.frame() %>% janitor::clean_names()  %>% dplyr::pull(start2) %>% min(),
