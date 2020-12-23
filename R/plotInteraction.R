@@ -9,6 +9,7 @@
 #' @param bounds_offset Beyond the largest and smallest elements, how much extra space in bp should be plotted?
 #' @param main character string for the title of the plot
 #' @importFrom Gviz IdeogramTrack AnnotationTrack GenomeAxisTrack displayPars
+#' @importFrom Gviz feature feature<- plotTracks
 #' @importFrom S4Vectors mcols
 #' @importFrom GenomicInteractions InteractionTrack
 #' @importFrom rlang .data
@@ -18,8 +19,8 @@
 plotInteraction=function(gint,chr,bounds_offset=1.5e4,main=NULL) {
   itrack <- Gviz::IdeogramTrack(genome = "hg38", chromosome=chr)
   gtrack <- GenomeAxisTrack()
-  promoter_gr=anchorOneWithMetadata(gs3dk_gint)
-  enhancer_gr=anchorTwoWithMetadata(gs3dk_gint)
+  promoter_gr=anchorOneWithMetadata(gint)
+  enhancer_gr=anchorTwoWithMetadata(gint)
   promoterTrack <- AnnotationTrack(promoter_gr, genome="hg38", name="Promoters",
                                    id=S4Vectors::mcols(promoter_gr)$gene_id,  featureAnnotation="id")
   enhancerTrack <- AnnotationTrack(enhancer_gr, genome="hg38", name="Enhancers",
@@ -44,12 +45,12 @@ plotInteraction=function(gint,chr,bounds_offset=1.5e4,main=NULL) {
   )
   
   Gviz::displayPars(interaction_track)=list(col.interactions="black")
-  bounds=c(gint %>% as.data.frame() %>% janitor::clean_names()  %>% dplyr::pull(start1) %>% min(),
-           gint %>% as.data.frame() %>% janitor::clean_names()  %>% dplyr::pull(end1) %>% max(),
-           gint %>% as.data.frame() %>% janitor::clean_names()  %>% dplyr::pull(start2) %>% min(),
-           gint %>% as.data.frame() %>% janitor::clean_names()  %>% dplyr::pull(end2) %>% max())
+  bounds=c(gint %>% as.data.frame() %>% janitor::clean_names()  %>% dplyr::pull(.data$start1) %>% min(),
+           gint %>% as.data.frame() %>% janitor::clean_names()  %>% dplyr::pull(.data$end1) %>% max(),
+           gint %>% as.data.frame() %>% janitor::clean_names()  %>% dplyr::pull(.data$start2) %>% min(),
+           gint %>% as.data.frame() %>% janitor::clean_names()  %>% dplyr::pull(.data$end2) %>% max())
   
-  plotTracks(list(itrack,gtrack,interaction_track,promoterTrack,enhancerTrack),
+  Gviz::plotTracks(list(itrack,gtrack,interaction_track,promoterTrack,enhancerTrack),
              chromosome=chr,
              from = (min(bounds))-bounds_offset,
              to = (max(bounds))+bounds_offset,
