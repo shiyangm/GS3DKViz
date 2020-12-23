@@ -12,6 +12,8 @@ plotInteraction(gint, chr, bounds_offset = 15000, main = NULL)
 \item{chr}{chromsome}
 
 \item{bounds_offset}{Beyond the largest and smallest elements, how much extra space in bp should be plotted?}
+
+\item{main}{character string for the title of the plot}
 }
 \description{
 Creates a Gviz promoter-enhancer plot

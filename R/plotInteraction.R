@@ -7,9 +7,11 @@
 #' @param gint genomic ranges object on a single chromosome
 #' @param chr chromsome
 #' @param bounds_offset Beyond the largest and smallest elements, how much extra space in bp should be plotted?
-#' @importFrom Gviz IdeogramTrack AnnotationTrack GenomeAxisTrack
+#' @param main character string for the title of the plot
+#' @importFrom Gviz IdeogramTrack AnnotationTrack GenomeAxisTrack displayPars
 #' @importFrom S4Vectors mcols
 #' @importFrom GenomicInteractions InteractionTrack
+#' @importFrom rlang .data
 #' @examples
 #' #See example at the start of the vignette
 #' @export
