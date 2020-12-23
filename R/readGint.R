@@ -5,7 +5,8 @@
 #' 
 #' @keywords GenomicRanges GenomicInteractions metadata
 #' @keywords GenomicRanges GenomicInteractions metadata
-#' @importFrom magrittr `%>%`
+#' @importFrom magrittr %>%
+#' @importFrom S4Vectors mcols
 #' @param csvfile Filename to be read
 #' @return gint a GenomicInteractions object with metadata 
 #' @examples
@@ -44,9 +45,9 @@ readGint=function(csvfile) {
     .[which(GenomicInteractions::calculateDistances(.)!=0),]
   #with the GenomicInteractions object created, we'll normalize the interaction score
   #and store it in the counts column for plotting.
-  mcols(gint)=gint %>% tibble::as_tibble() %>% janitor::clean_names() %>% 
+  S4Vectors::mcols(gint)=gint %>% tibble::as_tibble() %>% janitor::clean_names() %>% 
     dplyr::group_by(enhancer_type) %>% dplyr::mutate(interaction_score=interaction_score/mean(interaction_score,na.rm=T))
-  mcols(gint)$counts<-ifelse(!is.na(mcols(gint)$interaction_score),
-                             mcols(gint)$interaction_score,1) 
+  S4Vectors::mcols(gint)$counts<-ifelse(!is.na(S4Vectors::mcols(gint)$interaction_score),
+                                        S4Vectors::mcols(gint)$interaction_score,1) 
   return(gint)
 }
