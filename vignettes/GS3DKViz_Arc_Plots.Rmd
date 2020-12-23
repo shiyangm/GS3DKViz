@@ -68,13 +68,13 @@ makeGenomicInteractionsFromDataFrame<-function(inputdf,n=nrow(inputdf),includeme
   return(output)
 }
 anchorOneWithMetadata=function(gint) {
-  gr=anchorOne(gint)
-  mcols(gr)=mcols(gint) %>% tibble::as_tibble() %>% janitor::clean_names()
+  gr=GenomicInteractions::anchorOne(gint)
+  mcols(gr)=S4Vectors::mcols(gint) %>% tibble::as_tibble() %>% janitor::clean_names()
   return(gr)
 }
 anchorTwoWithMetadata=function(gint) {
-  gr=anchorTwo(gint)
-  mcols(gr)=mcols(gint)  %>% tibble::as_tibble() %>% janitor::clean_names()
+  gr=GenomicInteractions::anchorTwo(gint)
+  mcols(gr)=S4Vectors::mcols(gint)  %>% tibble::as_tibble() %>% janitor::clean_names()
   return(gr)
 }
 readGint=function(csvfile) {
