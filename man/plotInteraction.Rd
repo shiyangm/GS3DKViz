@@ -14,7 +14,6 @@
 Creates a Gviz promoter-enhancer plot
 }
 \examples{
-
 gs3dk_gint=GS3DKViz::readGint(system.file(
   "extdata","signficant_genes_genoscan_3D_knock.csv",
   package = "GS3DKViz"))

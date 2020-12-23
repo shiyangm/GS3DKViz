@@ -9,7 +9,6 @@
 #' @param bounds_offset Beyond the largest and smallest elements, how much extra space in bp should be plotted?
 #' @importFrom Gviz IdeogramTrack AnnotationTrack GenomeAxisTrack
 #' @examples
-#' 
 #' gs3dk_gint=GS3DKViz::readGint(system.file(
 #'   "extdata","signficant_genes_genoscan_3D_knock.csv",
 #'   package = "GS3DKViz"))
