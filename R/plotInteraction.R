@@ -33,6 +33,7 @@ plotInteraction=function(gint,chr,bounds_offset=1.5e4,main=NULL) {
                                      fontcolor.feature = "black", fontsize=10,
                                      just.group="below",rotation.item=90,
                                      collapse=T,mergeGroups=T,showOverplotting=T,groupAnnotation="group",group=S4Vectors::mcols(gint)$enhancer_type)
+  interaction_track <- GenomicInteractions::InteractionTrack(gint, name = "Interaction", chromosome = chr)
   Gviz::displayPars(interaction_track) <- list(fill = "deepskyblue", col = NA, 
                                          fontcolor.feature = "black", fontsize=8,
                                          just.group="below",plot.anchors=T,plot.outside=T,col.outside="lightblue",                                   interaction.measure="counts",
@@ -42,7 +43,6 @@ plotInteraction=function(gint,chr,bounds_offset=1.5e4,main=NULL) {
                                          fontsize.legend=200
   )
   
-  interaction_track <- GenomicInteractions::InteractionTrack(gint, name = "Interaction", chromosome = chr)
   Gviz::displayPars(interaction_track)=list(col.interactions="black")
   bounds=c(gint %>% as.data.frame() %>% janitor::clean_names()  %>% dplyr::pull(start1) %>% min(),
            gint %>% as.data.frame() %>% janitor::clean_names()  %>% dplyr::pull(end1) %>% max(),

@@ -45,7 +45,7 @@ We'll start by loading a few libraries that will enable us to generate plots
 and loading the data.
 
 For simple plots, we've created a convenient function for plotting.
-```{r basic_example}
+```{r basic_example,fig.width = 12,fig.height=12}
  gs3dk_gint=readGint(system.file(
    "extdata","signficant_genes_genoscan_3D_knock.csv",
    package = "GS3DKViz"))
