@@ -62,7 +62,8 @@ library(magrittr)
    #remove chromosomes from second range (ranges should only be positions).
    dplyr::mutate(start2=gsub("chr19: ","",start2)) \%>\% 
    #create the GI.
-makeGenomicInteractionsFromDataFrame() \%>\% .[which(calculateDistances(.)!=0),]
+makeGenomicInteractionsFromDataFrame() \%>\% 
+ .[which(GenomicInteractions::calculateDistances(.)!=0),]
    #remove arcs where the promoter and enhancers overlap.
    mcols(gs3dk_gint)=gs3dk_gint \%>\% tibble::as_tibble() \%>\% janitor::clean_names() \%>\% 
    dplyr::group_by(enhancer_type) \%>\%

@@ -8,6 +8,8 @@
 #' @keywords GenomicRanges GenomicInteractions data.frame  tibble data.table
 #' @importFrom GenomicInteractions GenomicInteractions
 #' @importFrom magrittr %>%
+#' @importFrom GenomicRanges GRanges
+#' @importFrom IRanges IRanges
 #' @param inputdf Dataframe with six cols, with chr1,start1,end1,chr2,start2,end2
 #' @param n the number of rows to use from the dataframe.
 #' @param includemetadata include metadata (the columns after the first six)
@@ -47,7 +49,8 @@
 #'    #remove chromosomes from second range (ranges should only be positions).
 #'    dplyr::mutate(start2=gsub("chr19: ","",start2)) %>% 
 #'    #create the GI.
-#' makeGenomicInteractionsFromDataFrame() %>% .[which(calculateDistances(.)!=0),]
+#' makeGenomicInteractionsFromDataFrame() %>% 
+#'  .[which(GenomicInteractions::calculateDistances(.)!=0),]
 #'    #remove arcs where the promoter and enhancers overlap.
 #'    mcols(gs3dk_gint)=gs3dk_gint %>% tibble::as_tibble() %>% janitor::clean_names() %>% 
 #'    dplyr::group_by(enhancer_type) %>%
@@ -68,16 +71,16 @@ makeGenomicInteractionsFromDataFrame<-function(inputdf,n=nrow(inputdf),includeme
   if(includemetadata==TRUE)
   {
     #creates genomic ranges objects, links them together in a genomic interactions object, with all metadata columns.
-    output_gint<-GenomicInteractions( GRanges(inputdf$chr1[1:n],
+    output_gint<-GenomicInteractions( GenomicRanges::GRanges(inputdf$chr1[1:n],
                                          IRanges(as.numeric(inputdf$start1)[1:n], as.numeric(inputdf$end1)[1:n])),
-                                 GRanges(inputdf$chr2[1:n],
+                                      GenomicRanges::GRanges(inputdf$chr2[1:n],
                                          IRanges(as.numeric(inputdf$start2)[1:n], as.numeric(inputdf$end2)[1:n])),...=as.data.frame(inputdf[,7:ncol(inputdf)]))
   }
   if (includemetadata==FALSE)
-  {                                 output_gint<-GenomicInteractions( GRanges(inputdf$chr1[1:n],
-                                                                         IRanges(as.numeric(inputdf$start1)[1:n], as.numeric(inputdf$end1)[1:n])),
-                                                                 GRanges(inputdf$chr2[1:n],
-                                                                         IRanges(as.numeric(inputdf$start2)[1:n], as.numeric(inputdf$end2)[1:n])))
+  {                                 output_gint<-GenomicInteractions( GenomicRanges::GRanges(inputdf$chr1[1:n],
+                                                                         IRanges::IRanges(as.numeric(inputdf$start1)[1:n], as.numeric(inputdf$end1)[1:n])),
+                                                                      GenomicRanges::GRanges(inputdf$chr2[1:n],
+                                                                         IRanges::IRanges(as.numeric(inputdf$start2)[1:n], as.numeric(inputdf$end2)[1:n])))
   }
   return(output_gint)
 }
