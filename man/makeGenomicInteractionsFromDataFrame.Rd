@@ -42,7 +42,8 @@ library(magrittr)
    #split the enhancer position into start and end
    tidyr::separate(best_enhancer_position,c("enhstart","enhend"),  "-") \%>\%
    #convert the promoter starts to numeric, assign replacements for missing data.
-   dplyr::mutate(promoterstart=as.numeric(promoterstart),chr1=chr,chr2=chr,
+   dplyr::mutate(promoterstart=suppressWarnings(as.numeric(promoterstart)),
+                 chr1=chr,chr2=chr,
                  #replace missing promoter starts with TSS
                  promoterstart=ifelse(is.na(promoterstart),genestart,
                                       promoterstart),
@@ -65,11 +66,12 @@ library(magrittr)
 makeGenomicInteractionsFromDataFrame() \%>\% 
  .[which(GenomicInteractions::calculateDistances(.)!=0),]
    #remove arcs where the promoter and enhancers overlap.
-   mcols(gs3dk_gint)=gs3dk_gint \%>\% tibble::as_tibble() \%>\% janitor::clean_names() \%>\% 
+   S4Vectors::mcols(gs3dk_gint)=gs3dk_gint \%>\% tibble::as_tibble() \%>\% janitor::clean_names() \%>\% 
    dplyr::group_by(enhancer_type) \%>\%
-   dplyr::mutate(interaction_score=interaction_score/mean(interaction_score,na.rm=T)) 
-   mcols(gs3dk_gint)$counts<-ifelse(!is.na(mcols(gs3dk_gint)$interaction_score),
-   mcols(gs3dk_gint)$interaction_score,1) 
+   dplyr::mutate(interaction_score=interaction_score/mean(interaction_score,na.rm=TRUE)) 
+   S4Vectors::mcols(gs3dk_gint)$counts<-ifelse(
+   !is.na(S4Vectors::mcols(gs3dk_gint)$interaction_score),
+   S4Vectors::mcols(gs3dk_gint)$interaction_score,1) 
 }
 \keyword{GenomicInteractions}
 \keyword{GenomicRanges}

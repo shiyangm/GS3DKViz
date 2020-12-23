@@ -41,7 +41,7 @@ readGint=function(csvfile) {
     #create the GI.
     makeGenomicInteractionsFromDataFrame() %>%
     #remove arcs where the promoter and enhancers overlap.
-    .[which(calculateDistances(.)!=0),]
+    .[which(GenomicInteractions::calculateDistances(.)!=0),]
   #with the GenomicInteractions object created, we'll normalize the interaction score
   #and store it in the counts column for plotting.
   mcols(gint)=gint %>% tibble::as_tibble() %>% janitor::clean_names() %>% 
