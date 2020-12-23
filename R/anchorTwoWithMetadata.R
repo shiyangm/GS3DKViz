@@ -6,6 +6,7 @@
 #' @keywords GenomicRanges GenomicInteractions metadata
 #' @importFrom GenomicInteractions anchorTwo
 #' @importFrom S4Vectors mcols
+#' @importFrom magrittr %>%
 #' @param gint A GenomicInteractions object
 #' @return gr a GRanges object with metadata 
 #' @examples
@@ -16,6 +17,6 @@
 #' @export
 anchorTwoWithMetadata=function(gint) {
   gr=anchorTwo(gint)
-  mcols(gr)=mcols(gint)  %>% tibble::as_tibble() %>% janitor::clean_names()
+  S4Vectors::mcols(gr)=S4Vectors::mcols(gint)  %>% tibble::as_tibble() %>% janitor::clean_names()
   return(gr)
 }

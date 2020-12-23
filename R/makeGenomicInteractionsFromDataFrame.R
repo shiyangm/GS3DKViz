@@ -7,6 +7,7 @@
 #' (having columns chr1,start1,end1,chr2,start2,end2,....).
 #' @keywords GenomicRanges GenomicInteractions data.frame  tibble data.table
 #' @importFrom GenomicInteractions GenomicInteractions
+#' @importFrom magrittr %>%
 #' @param inputdf Dataframe with six cols, with chr1,start1,end1,chr2,start2,end2
 #' @param n the number of rows to use from the dataframe.
 #' @param includemetadata include metadata (the columns after the first six)
