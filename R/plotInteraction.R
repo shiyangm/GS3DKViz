@@ -1,19 +1,20 @@
 #' Plot a GenomicInteractions object
 #' 
-#'
 #' Creates a Gviz promoter-enhancer plot
 #' 
+#' @name plotInteraction
 #' @keywords GenomicRanges GenomicInteractions metadata Gviz
 #' @param gint genomic ranges object on a single chromosome
 #' @param chr chromsome
 #' @param bounds_offset Beyond the largest and smallest elements, how much extra space in bp should be plotted?
 #' @importFrom Gviz IdeogramTrack AnnotationTrack GenomeAxisTrack
 #' @examples
-#' gs3dk_gint=readGint(system.file(
+#' 
+#' gs3dk_gint=GS3DKViz::readGint(system.file(
 #'   "extdata","signficant_genes_genoscan_3D_knock.csv",
 #'   package = "GS3DKViz"))
-#'   filtered_gs3dk_gint=gs3dk_gint[(gs3dk_gint %>% as.data.frame() %>% janitor::clean_names() %>% dplyr::pull(trait))=="FEV1"]
-#'   plotInteraction(gint = filtered_gs3dk_gint,
+#'   filtered_gs3dk_gint=gs3dk_gint[(janitor::clean_names(as.data.frame(gs3dk_gint))$trait)=="FEV1"]
+#'   GS3DKViz::plotInteraction(gint = filtered_gs3dk_gint,
 #'  chr=unique(janitor::clean_names(tibble::as_tibble(mcols(filtered_gs3dk_gint)))$chr),
 #'  bounds_offset=1.5e4,
 #'  main="Promoter–enhancer interactions, FEV1"

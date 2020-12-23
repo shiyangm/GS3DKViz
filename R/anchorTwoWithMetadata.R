@@ -4,6 +4,8 @@
 #' Creates a GRanges object from the second anchor of a GenomicInteractions
 #' object, but extracts all metadata columns.
 #' @keywords GenomicRanges GenomicInteractions metadata
+#' @importFrom GenomicInteractions anchorTwo
+#' @importFrom S4Vectors mcols
 #' @param gint A GenomicInteractions object
 #' @return gr a GRanges object with metadata 
 #' @examples

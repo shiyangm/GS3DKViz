@@ -5,6 +5,7 @@
 #' 
 #' @keywords GenomicRanges GenomicInteractions metadata
 #' @keywords GenomicRanges GenomicInteractions metadata
+#' @importFrom magrittr `%>%`
 #' @param csvfile Filename to be read
 #' @return gint a GenomicInteractions object with metadata 
 #' @examples
