@@ -16,7 +16,9 @@
 #'   package = "GS3DKViz"))
 #' @export
 readGint=function(csvfile) {
-  gint=data.table::fread(csvfile)  %>% 
+  #if(getRversion() >= "2.15.1")  utils::globalVariables(c(".")) #does not work
+.<-NULL
+    gint=data.table::fread(csvfile)  %>% 
     #automatically clean column names, converting to standard format.
     janitor::clean_names() %>%
     #split the gene position into start and end
@@ -43,7 +45,7 @@ readGint=function(csvfile) {
     #create the GI.
     makeGenomicInteractionsFromDataFrame() %>%
     #remove arcs where the promoter and enhancers overlap.
-    .data$.[which(GenomicInteractions::calculateDistances(.data$.)!=0),]
+    .[which(GenomicInteractions::calculateDistances(.)!=0),]
   #with the GenomicInteractions object created, we'll normalize the interaction score
   #and store it in the counts column for plotting.
   S4Vectors::mcols(gint)=gint %>% tibble::as_tibble() %>% janitor::clean_names() %>% 
