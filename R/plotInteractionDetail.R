@@ -24,6 +24,7 @@
 plotInteractionDetail=function(gint,extra_prom_gr,chr,bounds_offset=1.5e4,main=NULL) {
   enhancer.id=NULL
   promoter.id=NULL
+  gene_id=NULL
   promoter_gr=anchorOneWithMetadata(gint)
   enhancer_gr=anchorTwoWithMetadata(gint)
   GenomicInteractions::annotateInteractions(GIObject = gint,annotations =  list(promoter=promoter_gr,
@@ -43,7 +44,7 @@ plotInteractionDetail=function(gint,extra_prom_gr,chr,bounds_offset=1.5e4,main=N
   chromosome = as.character(gint %>% as.data.frame() %>%
       janitor::clean_names() %>% dplyr::filter(.data$trait=="AD") %>%
         dplyr::pull(.data$seqnames1)))
-  displayPars(interaction_track)=list(col.interactions="black",
+  Gviz::displayPars(interaction_track)=list(col.interactions="black",
     col.interaction.types=c('knockoff_detected-knockoff_detected'='blue',
         'knockoff_detected-knockoff_removed'='blue',
         'knockoff_removed-knockoff_removed'='black'))
@@ -84,7 +85,7 @@ plotInteractionDetail=function(gint,extra_prom_gr,chr,bounds_offset=1.5e4,main=N
                                  id=mcols(enhancer_gr)$gene_id, 
                                  group=S4Vectors::subjectHits(GenomicRanges::findOverlaps(enhancer_gr, reduce(enhancer_gr))),featureAnnotation="id",stacking="hide",
   )
-  displayPars(deTrackEnh2) <- list(fill = "mediumpurple1", col = NA, 
+  Gviz::displayPars(deTrackEnh2) <- list(fill = "mediumpurple1", col = NA, 
                                    fontcolor.feature = "black", fontsize=10,
                                    just.group="below",rotation.item=90,
                                    collapse=T,mergeGroups=T,showOverplotting=T,groupAnnotation="group",    group=mcols(gint)$enhancer_type,feature=mcols(gint)$enhancer_type,
@@ -96,7 +97,7 @@ plotInteractionDetail=function(gint,extra_prom_gr,chr,bounds_offset=1.5e4,main=N
   combined_prom_gr=c(promoter_gr,extra_prom_gr)
   CombinedPromoterTrack <- AnnotationTrack(combined_prom_gr, genome="hg38", name="Promoters",
                                            id=mcols(combined_prom_gr)$gene_id,  featureAnnotation="id",groupAnnotation="feature")
-  displayPars(CombinedPromoterTrack)=list(fill = "olivedrab1", col = NA, 
+  Gviz::displayPars(CombinedPromoterTrack)=list(fill = "olivedrab1", col = NA, 
                                           fontcolor.feature = "black", fontsize=8,                 just.group="below",rotation=90,rotation.group=90,rotation.item=90,
                                           min.width=1,min.distance=5)
   feature(CombinedPromoterTrack)=c(rep("connected",length(promoter_gr)),rep("unconnected",length(extra_prom_gr)))
