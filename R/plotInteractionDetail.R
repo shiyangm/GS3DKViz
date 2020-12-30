@@ -10,9 +10,11 @@
 #' @param bounds_offset Beyond the largest and smallest elements, how much extra space in bp should be plotted?
 #' @param main character string for the title of the plot
 #' @importFrom Gviz IdeogramTrack AnnotationTrack GenomeAxisTrack displayPars
-#' @importFrom Gviz feature feature<- plotTracks
-#' @importFrom S4Vectors mcols
+#' @importFrom InteractionSet regions
+#' @importFrom Gviz feature feature<- plotTracks displayPars<-
+#' @importFrom S4Vectors mcols subjectHits
 #' @importFrom GenomicInteractions InteractionTrack annotateInteractions
+#' @importFrom GenomicRanges distanceToNearest findOverlaps reduce
 #' @importFrom rlang .data
 #' @importFrom tibble as_tibble
 #' @importFrom dplyr filter pull
@@ -20,6 +22,8 @@
 #' #See example at the start of the vignette
 #' @export
 plotInteractionDetail=function(gint,extra_prom_gr,chr,bounds_offset=1.5e4,main=NULL) {
+  enhancer.id=NULL
+  promoter.id=NULL
   promoter_gr=anchorOneWithMetadata(gint)
   enhancer_gr=anchorTwoWithMetadata(gint)
   GenomicInteractions::annotateInteractions(GIObject = gint,annotations =  list(promoter=promoter_gr,
@@ -27,13 +31,13 @@ plotInteractionDetail=function(gint,extra_prom_gr,chr,bounds_offset=1.5e4,main=N
   knockoff_genes=S4Vectors::mcols(gint) %>% tibble::as_tibble() %>%
     dplyr::filter(.data$identified_by_knockoff_or_not=="Yes") %>% dplyr::pull(gene_id)
   
-  gint@regions@elementMetadata$node.class=(S4Vectors::mcols(regions(
+  gint@regions@elementMetadata$node.class=(S4Vectors::mcols(InteractionSet::regions(
     gint)) %>% 
   tibble::as_tibble() %>%
   dplyr::mutate(knockoff=ifelse((promoter.id %in% knockoff_genes | 
   enhancer.id %in% knockoff_genes),"knockoff_detected","knockoff_removed"),
-  node.class=knockoff) %>%
-    dplyr::pull(knockoff))
+  node.class=.data$knockoff) %>%
+    dplyr::pull(.data$knockoff))
   interaction_track <- InteractionTrack(gint,
   name = "Interaction",
   chromosome = as.character(gint %>% as.data.frame() %>%
@@ -61,14 +65,14 @@ plotInteractionDetail=function(gint,extra_prom_gr,chr,bounds_offset=1.5e4,main=N
                                      just.group="below",rotation.item=90,
                                      collapse=T,mergeGroups=T,showOverplotting=T,groupAnnotation="group",group=S4Vectors::mcols(gint)$enhancer_type)
   selFun <- function(identifier, start, end, track, GdObject, ...){
-    gcount <- table(group(GdObject))
+    gcount <- table(Gviz::group(GdObject))
     pxRange <- Gviz:::.pxResolution(min.width = 50, coord = "x")
-    return((end - start) < pxRange && gcount[identifier] == 1 && (distanceToNearest(GdObject[group(GdObject) == identifier]@range,GdObject[group(GdObject) != identifier]@range)@elementMetadata$distance)<50
+    return((end - start) < pxRange && gcount[identifier] == 1 && (GenomicRanges::distanceToNearest(GdObject[Gviz::group(GdObject) == identifier]@range,GdObject[Gviz::group(GdObject) != identifier]@range)@elementMetadata$distance)<50
     )
   }
   detFun <- function(identifier, GdObject.original, ...){
     plotTracks(list(GenomeAxisTrack(scale = 0.3, size = 0.2, cex = 0.7), 
-                    GdObject.original[group(GdObject.original) == identifier]),         add = TRUE, showTitle = FALSE)
+                    GdObject.original[Gviz::group(GdObject.original) == identifier]),         add = TRUE, showTitle = FALSE)
   }
   deTrackEnh2 <- AnnotationTrack(name = "Enhancers",enhancer_gr, fun = detFun, 
                                  selectFun = selFun,
@@ -78,7 +82,7 @@ plotInteractionDetail=function(gint,extra_prom_gr,chr,bounds_offset=1.5e4,main=N
                                  shape = c("smallArrow", "arrow"), 
                                  groupAnnotation = "group",
                                  id=mcols(enhancer_gr)$gene_id, 
-                                 group=subjectHits(findOverlaps(enhancer_gr, reduce(enhancer_gr))),featureAnnotation="id",stacking="hide",
+                                 group=S4Vectors::subjectHits(GenomicRanges::findOverlaps(enhancer_gr, reduce(enhancer_gr))),featureAnnotation="id",stacking="hide",
   )
   displayPars(deTrackEnh2) <- list(fill = "mediumpurple1", col = NA, 
                                    fontcolor.feature = "black", fontsize=10,

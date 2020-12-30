@@ -7,8 +7,8 @@ Author:  Shiyang Ma, James Dalgleish, Zihuai He
 Maintainer: James Dalgleish <james.dalgleish@columbia.edu>
 BugReports: https://github.com/jamesdalg/GS3DKViz/issues/
 Depends: R (>= 3.5.0)
-Imports: Gviz,GenomicInteractions,magrittr, S4Vectors,GenomicRanges,IRanges,rlang,dplyr,tibble
-Suggests: janitor,tidyr,data.table,knitr
+Imports: Gviz,GenomicInteractions,magrittr, S4Vectors,GenomicRanges,IRanges,rlang,dplyr,tibble,tidyr,InteractionSet,janitor
+Suggests: data.table,knitr,rmarkdown
 VignetteBuilder: knitr
 URL: https://github.com/jamesdalg/GS3DKViz/
 biocViews: 
