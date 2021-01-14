@@ -13,7 +13,7 @@ GS3DKViz is vignette for visualizing the promoter-enhancer interaction plots fro
 R (recommended version 4.0.3)
 
 ## Dependencies
-GeneScan3DKnock imports R packages SKAT, Matrix, MASS, WGScan, SPAtest, CompQuadForm and KnockoffScreen. Make sure to install those packages before installing GeneScan3DKnock.
+Gviz,GenomicInteractions,magrittr, S4Vectors,GenomicRanges,IRanges,rlang,dplyr,tibble,tidyr,InteractionSet,janitor
 
 ## Installation
 setRepositories(ind=c(1,2)) #this allows for Bioconductor dependencies to be installed correctly
