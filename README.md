@@ -6,9 +6,6 @@ The code to generate promoter-enhancer interaction plots is available as a vigne
 ## Description
 GS3DKViz is vignette for visualizing the promoter-enhancer interaction plots from GeneScan3DKnock analysis.
 
-## promoter-enhancer links
-![Workflow](https://user-images.githubusercontent.com/57265092/99107266-8c690a80-25b3-11eb-8fe1-ceb388bffa38.jpg)
-
 ## Prerequisites
 R (recommended version 4.0.3)
 
