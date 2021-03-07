@@ -22,7 +22,7 @@ The current version is '1.0.2' (January 13, 2021).
 
 ## Citation
 
-Shiyang Ma, James Dalgleish, Justin Lee, Chen Wang, Linxi Liu, Richard Gill, Wendy Chung, Hugues Aschard, Edwin K. Silverman, Michael H. Cho, Zihuai He, Iuliana Ionita-Laza, "A unified knockoff framework for gene-based testing with joint analysis of coding and regulatory variation", 2020
+Ma, S., Dalgleish, J. L ., Lee, J., Wang, C., Liu, L., Gill, R., Buxbaum, J. D., Chung, W., Aschard, H., Silverman, E. K., Cho, M. H., He, Z. and Ionita-Laza, I. "Improved gene-based testing by integrating long-range chromatin interactions and knockoff statistics", 2021
 
 ## License
 This software is licensed under GPLv3.
